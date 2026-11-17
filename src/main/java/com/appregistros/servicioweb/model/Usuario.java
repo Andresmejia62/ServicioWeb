@@ -1,24 +1,35 @@
 package com.appregistros.servicioweb.model;
 
 public class Usuario {
+    private Integer id;
     private String nombre;
     private String username;
     private String email;
+    private String correo;
     private String telefono;
     private String empresa;
     private String ciudad;
 
-
     public Usuario() {
     }
 
-    public Usuario(String nombre, String username, String email, String telefono, String empresa, String ciudad) {
+    public Usuario(Integer id, String nombre, String username, String email, String telefono, String empresa, String ciudad) {
+        this.id = id;
         this.nombre = nombre;
         this.username = username;
         this.email = email;
+        this.correo = email;
         this.telefono = telefono;
         this.empresa = empresa;
         this.ciudad = ciudad;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getNombre() {
@@ -38,11 +49,21 @@ public class Usuario {
     }
 
     public String getEmail() {
-        return email;
+        return email != null ? email : correo;
     }
 
     public void setEmail(String email) {
         this.email = email;
+        this.correo = email;
+    }
+
+    public String getCorreo() {
+        return correo != null ? correo : email;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+        this.email = correo;
     }
 
     public String getTelefono() {

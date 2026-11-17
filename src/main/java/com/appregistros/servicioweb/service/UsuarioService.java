@@ -37,6 +37,7 @@ public class UsuarioService {
 
            for (JsonNode dato : datos) {
                Usuario usuario = new Usuario();
+               usuario.setId(dato.path("id").isMissingNode() ? null : dato.path("id").asInt());
                usuario.setNombre(dato.path("name").asText());
                usuario.setUsername(dato.path("username").asText());
                usuario.setEmail(dato.path("email").asText());
