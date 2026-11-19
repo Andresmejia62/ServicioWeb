@@ -10,4 +10,6 @@ module com.appregistros.servicioweb {
     exports com.appregistros.servicioweb;
     exports com.appregistros.servicioweb.model;
     exports com.desarrollo.serviciosweb;
+    exports com.appregistros.servicioweb.controller;
+    opens com.appregistros.servicioweb.controller to javafx.fxml;
 }

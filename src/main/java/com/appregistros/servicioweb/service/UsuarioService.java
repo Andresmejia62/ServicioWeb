@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.net.URI;
-
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -14,42 +13,53 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UsuarioService {
-    private static final String URL = "https://jsonplaceholder.typicode.com/users";
+    private static final String URL = "https://sqpvqkkdfgtzdgrjrgxs.supabase.co/rest/v1/customers?select=*";
+    private static final String API_KEY_ENV = "SUPABASE_API_KEY";
 
     public List<Usuario> obtenerUsuarios() {
         try {
-           HttpClient cliente = HttpClient.newHttpClient();
-           HttpRequest request = HttpRequest.newBuilder()
-                   .uri(URI.create(URL))
-                   .timeout(Duration.ofSeconds(15))
-                   .GET()
-                   .build();
+            String apiKey = System.getenv(API_KEY_ENV);
+            if (apiKey == null || apiKey.isBlank()) {
+                throw new IllegalStateException("Configure la variable de entorno " + API_KEY_ENV);
+            }
 
-           HttpResponse<String> response = cliente.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(URL))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("apikey", apiKey)
+                    .header("Accept", "application/json")
+                    .GET()
+                    .build();
 
-           if (response.statusCode() != 200) {
-               throw new RuntimeException("Error al obtener los usuarios: " + response.statusCode());
-           }
+            HttpResponse<String> response = HttpClient.newHttpClient()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
 
-           ObjectMapper mapper = new ObjectMapper();
-           JsonNode datos = mapper.readTree(response.body());
-           List<Usuario> usuarios = new ArrayList<>();
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new RuntimeException("Error al obtener clientes: HTTP " + response.statusCode());
+            }
 
-           for (JsonNode dato : datos) {
-               Usuario usuario = new Usuario();
-               usuario.setId(dato.path("id").isMissingNode() ? null : dato.path("id").asInt());
-               usuario.setNombre(dato.path("name").asText());
-               usuario.setUsername(dato.path("username").asText());
-               usuario.setEmail(dato.path("email").asText());
-               usuario.setTelefono(dato.path("phone").asText());
-               usuario.setEmpresa(dato.path("company").path("name").asText());
-               usuario.setCiudad(dato.path("address").path("city").asText());
-               usuarios.add(usuario);
-           }
+            JsonNode datos = new ObjectMapper().readTree(response.body());
+            List<Usuario> usuarios = new ArrayList<>();
 
-           return usuarios;
+            for (JsonNode dato : datos) {
+                Usuario usuario = new Usuario();
+                usuario.setId(dato.path("id").isMissingNode() ? null : dato.path("id").asInt());
+                usuario.setNombre(dato.path("first_name").asText().trim() + " "
+                        + dato.path("last_name").asText().trim());
+                usuario.setUsername(dato.path("email").asText().split("@")[0]);
+                usuario.setEmail(dato.path("email").asText());
+                usuario.setTelefono(dato.path("phone").asText());
+                usuario.setCiudad(dato.path("city").asText());
+                usuario.setEmpresa(dato.path("status").asText());
+                usuarios.add(usuario);
+            }
+
+            return usuarios;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Consulta cancelada", e);
         } catch (Exception e) {
-           throw new RuntimeException("Error al consumir la API de usuarios", e);
+            throw new RuntimeException("Error al consumir la API de clientes", e);
         }
     }
 }
